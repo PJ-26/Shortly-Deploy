@@ -37,4 +37,7 @@ app.post('/signup', handler.signupUser);
 
 app.get('/*', handler.navToLink);
 
+console.log("making changes to test server");
+
+
 module.exports = app;
