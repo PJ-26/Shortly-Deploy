@@ -2,7 +2,16 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
+    
+    
     concat: {
+      options: {
+        separator: ';',
+      },
+      dist: {
+        src: ['public/client/**/*.js'],
+        dest: 'public/dist/built.js',
+      },
     },
 
     mochaTest: {
@@ -21,15 +30,24 @@ module.exports = function(grunt) {
     },
 
     uglify: {
+      dist: {
+        files: {
+          'public/dist/built.min.js': ['public/dist/built.js'],
+        }
+      }
+
     },
 
     eslint: {
-      target: [
-        // Add list of files to lint here
-      ]
+      target: ['app/**/*.js', 'public/client/*.js', 'server.js', 'server-config.js', 'lib/*.js']
     },
 
     cssmin: {
+      dist: {
+        files: {
+          'public/dist/style.min.css': ['public/style.css']
+        }
+      }
     },
 
     watch: {
@@ -51,6 +69,12 @@ module.exports = function(grunt) {
 
     shell: {
       prodServer: {
+        command: 'git push live master',
+        options: {
+          stdout: true,
+          stderr: true,
+          failOnError: true
+        }
       }
     },
   });
@@ -65,6 +89,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-nodemon');
 
   grunt.registerTask('server-dev', function (target) {
+    
     grunt.task.run([ 'nodemon', 'watch' ]);
   });
 
@@ -73,23 +98,21 @@ module.exports = function(grunt) {
   ////////////////////////////////////////////////////
 
   grunt.registerTask('test', [
+    'eslint',
     'mochaTest'
   ]);
 
-  grunt.registerTask('build', [
-  ]);
+  grunt.registerTask('build', ['concat', 'cssmin', 'uglify']);
 
   grunt.registerTask('upload', function(n) {
     if (grunt.option('prod')) {
-      // add your production server task here
+      grunt.task.run(['shell:prodServer']);
     } else {
       grunt.task.run([ 'server-dev' ]);
     }
   });
 
-  grunt.registerTask('deploy', [
-    // add your deploy tasks here
-  ]);
+  grunt.registerTask('deploy', ['test', 'build', 'upload']);
 
 
 };
